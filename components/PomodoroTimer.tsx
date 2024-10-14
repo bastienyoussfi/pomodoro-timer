@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { Bell, CheckCircle, PlusCircle, Trash2 } from 'lucide-react';
 
 type TimerType = 'work' | 'shortBreak' | 'longBreak';
 
@@ -93,94 +95,133 @@ const PomodoroTimer: React.FC = () => {
     ));
   };
 
+  const removeTask = (id: number) => {
+    setTasks(tasks.filter(task => task.id !== id));
+  };
+
+  const getTimerColor = () => {
+    switch (timerType) {
+      case 'work': return 'bg-red-500';
+      case 'shortBreak': return 'bg-green-500';
+      case 'longBreak': return 'bg-blue-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold mb-4 text-center">Pomodoro Timer</h1>
-        <div className="text-6xl font-bold mb-8 text-center">
+      <motion.div 
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg"
+      >
+        <h1 className="text-4xl font-bold mb-6 text-center text-gray-800">Pomodoro Timer</h1>
+        <motion.div 
+          className={`text-7xl font-bold mb-8 text-center p-8 rounded-full ${getTimerColor()} text-white shadow-lg`}
+          animate={{ scale: isActive ? [1, 1.05, 1] : 1 }}
+          transition={{ duration: 1, repeat: isActive ? Infinity : 0 }}
+        >
           {String(time.minutes).padStart(2, '0')}:{String(time.seconds).padStart(2, '0')}
-        </div>
-        <div className="flex justify-between mb-4">
-          <button
-            className={`px-4 py-2 rounded ${timerType === 'work' ? 'bg-blue-500' : 'bg-gray-300'}`}
-            onClick={() => switchTimer('work')}
-          >
-            Work
-          </button>
-          <button
-            className={`px-4 py-2 rounded ${timerType === 'shortBreak' ? 'bg-green-500' : 'bg-gray-300'}`}
-            onClick={() => switchTimer('shortBreak')}
-          >
-            Short Break
-          </button>
-          <button
-            className={`px-4 py-2 rounded ${timerType === 'longBreak' ? 'bg-purple-500' : 'bg-gray-300'}`}
-            onClick={() => switchTimer('longBreak')}
-          >
-            Long Break
-          </button>
+        </motion.div>
+        <div className="flex justify-between mb-6">
+          {(['work', 'shortBreak', 'longBreak'] as TimerType[]).map((type) => (
+            <motion.button
+              key={type}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`px-4 py-2 rounded-full ${timerType === type ? getTimerColor() : 'bg-gray-300'} text-white font-semibold shadow-md`}
+              onClick={() => switchTimer(type)}
+            >
+              {type === 'work' ? 'Work' : type === 'shortBreak' ? 'Short Break' : 'Long Break'}
+            </motion.button>
+          ))}
         </div>
         <div className="flex justify-center space-x-4 mb-8">
-          <button
-            className={`px-4 py-2 rounded ${
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`px-6 py-2 rounded-full ${
               isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-            } text-white font-bold`}
+            } text-white font-bold shadow-md`}
             onClick={toggleTimer}
           >
             {isActive ? 'Pause' : 'Start'}
-          </button>
-          <button
-            className="px-4 py-2 rounded bg-gray-500 hover:bg-gray-600 text-white font-bold"
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-6 py-2 rounded-full bg-gray-500 hover:bg-gray-600 text-white font-bold shadow-md"
             onClick={resetTimer}
           >
             Reset
-          </button>
+          </motion.button>
         </div>
-        <div className="mb-4">
-          <h2 className="text-xl font-bold mb-2">Tasks</h2>
-          <div className="flex mb-2">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">Tasks</h2>
+          <div className="flex mb-4">
             <input
               type="text"
-              className="flex-grow px-2 py-1 border rounded-l"
+              className="flex-grow px-4 py-2 border border-gray-300 rounded-l-full focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
               placeholder="Add a new task"
             />
-            <button
-              className="px-4 py-1 bg-blue-500 text-white rounded-r"
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-4 py-2 bg-blue-500 text-white rounded-r-full"
               onClick={addTask}
             >
-              Add
-            </button>
+              <PlusCircle size={24} />
+            </motion.button>
           </div>
-          <ul>
+          <ul className="space-y-2">
             {tasks.map((task) => (
-              <li key={task.id} className="flex items-center justify-between mb-2">
-                <span className={task.completed ? 'line-through' : ''}>
+              <motion.li
+                key={task.id}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="flex items-center justify-between p-3 bg-gray-100 rounded-lg"
+              >
+                <span className={`flex-grow ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                   {task.text} (Pomodoros: {task.pomodoros})
                 </span>
-                <div>
-                  <button
-                    className="mr-2 px-2 py-1 bg-green-500 text-white rounded"
+                <div className="flex space-x-2">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="p-1 rounded-full bg-green-500 text-white"
                     onClick={() => toggleTaskCompletion(task.id)}
                   >
-                    {task.completed ? 'Undo' : 'Complete'}
-                  </button>
-                  <button
-                    className="px-2 py-1 bg-blue-500 text-white rounded"
+                    <CheckCircle size={20} />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="p-1 rounded-full bg-blue-500 text-white"
                     onClick={() => incrementTaskPomodoros(task.id)}
                   >
-                    +1 Pomodoro
-                  </button>
+                    <Bell size={20} />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="p-1 rounded-full bg-red-500 text-white"
+                    onClick={() => removeTask(task.id)}
+                  >
+                    <Trash2 size={20} />
+                  </motion.button>
                 </div>
-              </li>
+              </motion.li>
             ))}
           </ul>
         </div>
-        <div className="text-center">
+        <div className="text-center text-lg font-semibold text-gray-700">
           <p>Completed Pomodoros: {completedPomodoros}</p>
         </div>
-      </div>
+      </motion.div>
       <audio ref={audioRef} src="/notification.mp3" />
     </div>
   );
